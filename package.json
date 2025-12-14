@@ -9,12 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^19.2.3",
-    "lucide-react": "^0.561.0",
-    "react-dom": "^19.2.3",
     "@google/genai": "^1.33.0",
+    "@vercel/analytics": "^1.6.1",
+    "gifshot": "0.4.5",
     "html2canvas": "^1.4.1",
-    "gifshot": "0.4.5"
+    "lucide-react": "^0.561.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
