@@ -1,9 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { TweetData, MediaItem } from "../types";
 
-const processEnv = (typeof process !== 'undefined' && process.env) ? process.env : {};
-const API_KEY = processEnv.API_KEY || '';
-
 // --- Helpers ---
 
 const formatFxTimestamp = (isoDate: string) => {
@@ -19,6 +16,7 @@ const formatFxTimestamp = (isoDate: string) => {
 };
 
 const formatMetric = (num: number) => {
+  if (!num) return '0';
   if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
   if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
   return num.toString();
@@ -54,17 +52,14 @@ const fetchFromFxTwitter = async (url: string): Promise<TweetData | null> => {
               mediaObj.videos.forEach((v: any) => items.push({ type: 'video', url: v.url }));
           }
           
-          // If mixed/mosaic, they usually appear in photos/videos lists anyway in this API
           return items;
       };
 
-      // 1. Main Tweet Media
       let media: MediaItem[] = [];
       if (t.media) {
           media = extractMediaList(t.media);
       }
 
-      // 2. Quoted Tweet Extraction
       let quotedTweet: TweetData | undefined;
       if (t.quote) {
           let qMedia: MediaItem[] = [];
@@ -78,7 +73,7 @@ const fetchFromFxTwitter = async (url: string): Promise<TweetData | null> => {
               authorAvatarUrl: t.quote.author.avatar_url,
               content: t.quote.text,
               timestamp: '',
-              metrics: { likes: '0', reposts: '0' },
+              metrics: { likes: '0', reposts: '0', replies: '0', views: '0' },
               media: qMedia
           };
       }
@@ -91,7 +86,9 @@ const fetchFromFxTwitter = async (url: string): Promise<TweetData | null> => {
           timestamp: formatFxTimestamp(t.created_at),
           metrics: {
               likes: formatMetric(t.likes),
-              reposts: formatMetric(t.retweets)
+              reposts: formatMetric(t.retweets),
+              replies: formatMetric(t.replies),
+              views: formatMetric(t.views)
           },
           media,
           quotedTweet
@@ -105,15 +102,14 @@ const fetchFromFxTwitter = async (url: string): Promise<TweetData | null> => {
 // --- Gemini Strategy (Fallback) ---
 
 const fetchFromGemini = async (url: string): Promise<Partial<TweetData>> => {
-  if (!API_KEY) throw new Error("API Key missing");
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const prompt = `
     I have a URL to a post on X: ${url}
     Perform a Google Search to find content.
     Extract the following fields into a raw JSON object:
     - authorName, authorHandle, content, timestamp
-    - likes, reposts (estimates are fine)
+    - likes, reposts, replies, views (as strings like '1.2M' or '45K')
     - media: Array of objects { type: 'image' | 'video' | 'gif', url: string }
     - quotedTweet: If this is a quote tweet, provide an object with { authorName, authorHandle, content, media: [...] }. Otherwise null.
     
@@ -121,7 +117,7 @@ const fetchFromGemini = async (url: string): Promise<Partial<TweetData>> => {
   `;
 
   const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
       config: { tools: [{ googleSearch: {} }] }
   });
@@ -142,7 +138,7 @@ const fetchFromGemini = async (url: string): Promise<Partial<TweetData>> => {
           authorAvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.quotedTweet.authorName || 'Q')}`,
           content: data.quotedTweet.content || '',
           timestamp: '',
-          metrics: { likes: '0', reposts: '0' },
+          metrics: { likes: '0', reposts: '0', replies: '0', views: '0' },
           media: Array.isArray(data.quotedTweet.media) ? data.quotedTweet.media : []
       };
   }
@@ -154,7 +150,9 @@ const fetchFromGemini = async (url: string): Promise<Partial<TweetData>> => {
       timestamp: data.timestamp || new Date().toLocaleDateString(),
       metrics: {
         likes: data.likes || '0',
-        reposts: data.reposts || '0'
+        reposts: data.reposts || '0',
+        replies: data.replies || '0',
+        views: data.views || '0'
       },
       media: Array.isArray(data.media) ? data.media : [],
       authorAvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.authorName)}&background=random`,
@@ -162,16 +160,12 @@ const fetchFromGemini = async (url: string): Promise<Partial<TweetData>> => {
   };
 };
 
-// --- Main Export ---
-
 export const analyzeTweetUrl = async (url: string): Promise<Partial<TweetData>> => {
-    // 1. Try FxTwitter API first
     const fxResult = await fetchFromFxTwitter(url);
     if (fxResult) {
         return fxResult;
     }
 
-    // 2. Fallback to Gemini Search
     try {
         return await fetchFromGemini(url);
     } catch (e) {

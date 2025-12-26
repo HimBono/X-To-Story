@@ -12,6 +12,8 @@ export interface TweetData {
   metrics: {
     likes: string;
     reposts: string;
+    replies: string;
+    views: string;
   };
   media: MediaItem[];
   quotedTweet?: TweetData;
@@ -24,6 +26,10 @@ export interface StoryConfig {
   scale: number;
   showWatermark: boolean;
   showContent: boolean;
+  showLikes: boolean;
+  showReplies: boolean;
+  showReposts: boolean;
+  showViews: boolean;
 }
 
 export const INITIAL_TWEET_DATA: TweetData = {
@@ -34,7 +40,9 @@ export const INITIAL_TWEET_DATA: TweetData = {
   timestamp: '10:30 AM · Jul 24, 2023',
   metrics: {
     likes: '1.2M',
-    reposts: '450K'
+    reposts: '450K',
+    replies: '82K',
+    views: '42M'
   },
   media: [],
 };
@@ -46,4 +54,8 @@ export const INITIAL_CONFIG: StoryConfig = {
   scale: 1,
   showWatermark: true,
   showContent: true,
+  showLikes: true,
+  showReplies: true,
+  showReposts: true,
+  showViews: true,
 };
