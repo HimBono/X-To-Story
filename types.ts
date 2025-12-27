@@ -1,6 +1,7 @@
 export interface MediaItem {
   type: 'image' | 'video' | 'gif';
   url: string;
+  thumbnailUrl?: string;
 }
 
 export interface TweetData {
