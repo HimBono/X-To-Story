@@ -220,55 +220,104 @@ export default function App() {
   if (!showStudio) return <LandingPage onEnter={() => setShowStudio(true)} />;
 
   return (
-    <div className="flex flex-col min-h-screen bg-black text-white">
-      <header className="h-20 md:h-16 border-b border-white/10 flex flex-col md:flex-row items-center justify-between px-4 md:px-6 bg-neutral-900/50 backdrop-blur-md sticky top-0 z-30 shrink-0 gap-2 py-2 md:py-0">
-        <div className="flex items-center justify-between w-full md:w-auto">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setShowStudio(false)} className="hover:bg-white/10 p-2 rounded-lg transition-colors"><Share2 size={20} /></button>
-            <h1 className="font-bold text-base md:text-lg tracking-tight">X-to-Story</h1>
-          </div>
-        </div>
-        <form onSubmit={handleAnalyze} className="flex items-center gap-2 w-full md:w-[350px] lg:w-[450px] relative">
-          <input
-            type="text"
-            placeholder="Paste X link here..."
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            className="w-full bg-neutral-800 border border-neutral-700 rounded-full py-2 px-4 text-sm focus:outline-none focus:border-blue-500 placeholder:text-neutral-500"
-          />
-          <button type="submit" disabled={isLoading} className="absolute right-1 top-1 p-1.5 bg-blue-600 rounded-full transition-transform active:scale-90">
-            {isLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ArrowRight size={16} />}
+    <div className="min-h-screen bg-neutral-950 text-white">
+      {/* Minimal Header */}
+      <header className="border-b border-white/10 bg-black/50 backdrop-blur-md sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+          <button
+            onClick={() => setShowStudio(false)}
+            className="flex items-center gap-2 hover:bg-white/10 px-3 py-2 rounded-lg transition-colors"
+          >
+            <Share2 size={18} />
+            <span className="font-bold text-sm tracking-tight">X-to-Story</span>
           </button>
+
+          {/* URL Input - Desktop */}
+          <form onSubmit={handleAnalyze} className="hidden md:flex items-center w-full max-w-md mx-8 relative">
+            <input
+              type="text"
+              placeholder="Paste X link here..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="w-full bg-neutral-900 border border-neutral-800 rounded-full py-2.5 px-5 text-sm focus:outline-none focus:border-blue-500 placeholder:text-neutral-500"
+            />
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 bg-blue-600 rounded-full transition-all active:scale-90 hover:bg-blue-500 disabled:opacity-50"
+            >
+              {isLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ArrowRight size={16} />}
+            </button>
+          </form>
+
+          <div className="w-24" /> {/* Spacer for balance */}
+        </div>
+
+        {/* URL Input - Mobile */}
+        <form onSubmit={handleAnalyze} className="md:hidden px-4 pb-3">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Paste X link here..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="w-full bg-neutral-900 border border-neutral-800 rounded-full py-2.5 px-5 text-sm focus:outline-none focus:border-blue-500 placeholder:text-neutral-500"
+            />
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 bg-blue-600 rounded-full transition-all active:scale-90 hover:bg-blue-500 disabled:opacity-50"
+            >
+              {isLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ArrowRight size={16} />}
+            </button>
+          </div>
         </form>
       </header>
 
-      <main className="flex-1 flex flex-col lg:flex-row lg:h-[calc(100vh-64px)] lg:overflow-hidden relative bg-neutral-950">
-        {error && <div className="fixed top-24 left-1/2 -translate-x-1/2 bg-red-500/10 border border-red-500 text-red-200 px-4 py-2 rounded-lg z-50 flex items-center gap-2 shadow-xl animate-in fade-in slide-in-from-top-4">{error} <button onClick={() => setError(null)}><X size={14} /></button></div>}
+      {/* Error Toast */}
+      {error && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-red-500/10 border border-red-500 text-red-200 px-4 py-2 rounded-lg z-50 flex items-center gap-2 shadow-xl">
+          {error}
+          <button onClick={() => setError(null)} className="hover:bg-red-500/20 p-1 rounded"><X size={14} /></button>
+        </div>
+      )}
 
-        {isDownloading && (
-          <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-full max-w-xs space-y-4">
-              <div className="w-16 h-16 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mx-auto" />
-              <h4 className="font-bold text-xl">{progress > 0 ? `Capturing: ${progress}%` : 'Processing...'}</h4>
-              <p className="text-sm text-gray-400">Please keep this tab open.</p>
-              {progress > 0 && <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-blue-600 transition-all duration-300" style={{ width: `${progress}%` }} /></div>}
+      {/* Download Overlay */}
+      {isDownloading && (
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-full max-w-xs space-y-4">
+            <div className="w-16 h-16 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mx-auto" />
+            <h4 className="font-bold text-xl">{progress > 0 ? `Capturing: ${progress}%` : 'Processing...'}</h4>
+            <p className="text-sm text-gray-400">Please keep this tab open.</p>
+            {progress > 0 && <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-blue-600 transition-all duration-300" style={{ width: `${progress}%` }} /></div>}
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
+
+          {/* Canvas Section */}
+          <div className="w-full lg:w-auto flex flex-col items-center">
+            <div className="bg-neutral-900/50 rounded-2xl p-4 border border-white/5">
+              <StoryCanvas tweet={tweetData} config={storyConfig} canvasRef={canvasRef} />
             </div>
           </div>
-        )}
 
-        <div className="w-full lg:flex-1 min-h-[500px] flex items-center justify-center p-4 lg:overflow-y-auto">
-          <StoryCanvas tweet={tweetData} config={storyConfig} canvasRef={canvasRef} />
+          {/* Controls Section */}
+          <div className="w-full lg:w-[340px] shrink-0">
+            <ControlPanel
+              tweet={tweetData}
+              setTweet={setTweetData}
+              config={storyConfig}
+              setConfig={setStoryConfig}
+              onDownload={handleDownload}
+              onDownloadVideo={handleGenerateGif}
+              isDownloading={isDownloading}
+            />
+          </div>
         </div>
-
-        <ControlPanel
-          tweet={tweetData}
-          setTweet={setTweetData}
-          config={storyConfig}
-          setConfig={setStoryConfig}
-          onDownload={handleDownload}
-          onDownloadVideo={handleGenerateGif}
-          isDownloading={isDownloading}
-        />
       </main>
     </div>
   );

@@ -60,7 +60,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     const hasMotion = tweet.media.some(m => m.type === 'video' || m.type === 'gif');
 
     return (
-        <div className="w-full lg:w-[400px] lg:h-full h-auto bg-neutral-900 border-t lg:border-t-0 lg:border-l border-white/10 p-6 flex flex-col gap-8 shrink-0 lg:overflow-y-auto">
+        <div className="w-full bg-neutral-900 border border-white/10 rounded-2xl p-6 flex flex-col gap-6">
 
             {/* Actions */}
             <div className="flex flex-col gap-3">
